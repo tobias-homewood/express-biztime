@@ -4,8 +4,9 @@ const db = require("../db");
 
 process.env.NODE_ENV = "test";
 
-beforeAll(async () => {
+beforeEach(async () => {
     // Drop table
+    await db.query(`DROP TABLE IF EXISTS invoices`);
     await db.query(`DROP TABLE IF EXISTS companies`);
 
     // Create table
@@ -14,19 +15,6 @@ beforeAll(async () => {
         name text NOT NULL UNIQUE,
         description text
     )`);
-
-    // Insert some test data
-    await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('ABC', 'Company ABC', 'Description ABC')`
-    );
-    await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('XYZ', 'Company XYZ', 'Description XYZ')`
-    );
-});
-
-afterEach(async () => {
-    // Clear the test data
-    await db.query(`DELETE FROM companies`);
 
     // Insert some test data
     await db.query(
@@ -53,11 +41,6 @@ describe("GET /companies", () => {
         const response = await request(app).get("/companies");
         expect(response.status).toBe(500);
         expect(response.body.error).toBeDefined();
-        await db.query(`CREATE TABLE companies (
-            code text PRIMARY KEY,
-            name text NOT NULL UNIQUE,
-            description text
-        )`);
     });
 });
 
