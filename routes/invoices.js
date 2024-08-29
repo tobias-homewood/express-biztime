@@ -1,6 +1,7 @@
 const express = require("express");
 const invoicesRouter = new express.Router();
 const db = require("../db");
+const retrieveIndustries = require("../helpers/retrieveIndustries");
 
 // all invoices
 invoicesRouter.get("/", async function (req, res, next) {
@@ -125,7 +126,7 @@ invoicesRouter.get("/companies/:code", async function (req, res, next) {
         );
 
         company.invoices = invoicesQuery.rows;
-
+        company.industries = await retrieveIndustries(company, db);
         return res.json({ company: company });
     } catch (err) {
         return next(err);
