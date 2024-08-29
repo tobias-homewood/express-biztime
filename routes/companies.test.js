@@ -18,10 +18,10 @@ beforeEach(async () => {
 
     // Insert some test data
     await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('ABC', 'Company ABC', 'Description ABC')`
+        `INSERT INTO companies (code, name, description) VALUES ('abc', 'Company ABC', 'Description ABC')`
     );
     await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('XYZ', 'Company XYZ', 'Description XYZ')`
+        `INSERT INTO companies (code, name, description) VALUES ('xyz', 'Company XYZ', 'Description XYZ')`
     );
 });
 
@@ -46,16 +46,16 @@ describe("GET /companies", () => {
 
 describe("GET /companies/:code", () => {
     test("should return a specific company", async () => {
-        const response = await request(app).get("/companies/ABC");
+        const response = await request(app).get("/companies/abc");
         expect(response.status).toBe(200);
         expect(response.body.company).toBeDefined();
-        expect(response.body.company.code).toBe("ABC");
+        expect(response.body.company.code).toBe("abc");
     });
 
     test("should handle company not found", async () => {
-        const response = await request(app).get("/companies/DEF");
+        const response = await request(app).get("/companies/def");
         expect(response.status).toBe(404);
-        expect(response.body.message).toBe("Company with code 'DEF' not found");
+        expect(response.body.message).toBe("Company with code 'def' not found");
     });
 });
 
@@ -70,7 +70,7 @@ describe("POST /companies", () => {
             });
         expect(response.status).toBe(201);
         expect(response.body.company).toBeDefined();
-        expect(response.body.company.code).toBe("DEF");
+        expect(response.body.company.code).toBe("def");
     });
 
     test("should handle validation errors", async () => {
@@ -85,7 +85,7 @@ describe("POST /companies", () => {
 describe("PUT /companies/:code", () => {
     test("should update a company", async () => {
         const response = await request(app)
-            .put("/companies/ABC")
+            .put("/companies/abc")
             .send({
                 name: "Updated Company ABC",
                 description: "Updated Description ABC",
@@ -98,27 +98,27 @@ describe("PUT /companies/:code", () => {
 
     test("should handle company not found", async () => {
         const response = await request(app)
-            .put("/companies/DEF")
+            .put("/companies/def")
             .send({
                 name: "Updated Company DEF",
                 description: "Updated Description DEF",
             });
         expect(response.status).toBe(404);
-        expect(response.body.message).toBe("Company with code 'DEF' not found");
+        expect(response.body.message).toBe("Company with code 'def' not found");
     });
 });
 
 describe("DELETE /companies/:code", () => {
     test("should delete a company", async () => {
-        const response = await request(app).delete("/companies/ABC");
+        const response = await request(app).delete("/companies/abc");
         expect(response.status).toBe(200);
         expect(response.body.status).toBe("deleted");
     });
 
     test("should handle company not found", async () => {
-        const response = await request(app).delete("/companies/DEF");
+        const response = await request(app).delete("/companies/def");
         expect(response.status).toBe(404);
-        expect(response.body.message).toBe("Company with code 'DEF' not found");
+        expect(response.body.message).toBe("Company with code 'def' not found");
     });
 });
 

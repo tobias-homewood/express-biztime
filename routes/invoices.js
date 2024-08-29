@@ -49,10 +49,30 @@ invoicesRouter.put("/:id", async function (req, res, next) {
     try {
         const id = req.params.id;
         const amt = req.body.amt;
-        const result = await db.query(
-            "UPDATE invoices SET amt = $2 WHERE id = $1 RETURNING *",
-            [id, amt]
-        );
+        const paid = req.body.paid;
+        let paid_date = null;
+
+        if (paid === true) {
+            paid_date = new Date();
+        }
+
+        if (amt !== undefined && paid === undefined) {
+            result = await db.query(
+                "UPDATE invoices SET amt = $2 WHERE id = $1 RETURNING *",
+                [id, amt]
+            );
+        } else if (amt === undefined && paid !== undefined) {
+            result = await db.query(
+                "UPDATE invoices SET paid = $2, paid_date = $3 WHERE id = $1 RETURNING *",
+                [id, paid, paid_date]
+            );
+        } else {
+            result = await db.query(
+                "UPDATE invoices SET amt = $2, paid = $3, paid_date = $4 WHERE id = $1 RETURNING *",
+                [id, amt, paid, paid_date]
+            );
+        }
+
         if (result.rows.length === 0) {
             return res
                 .status(404)

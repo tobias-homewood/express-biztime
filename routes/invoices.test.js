@@ -29,18 +29,18 @@ beforeEach(async () => {
 
     // Insert some test data into companies table
     await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('ABC', 'Company ABC', 'Description ABC')`
+        `INSERT INTO companies (code, name, description) VALUES ('abc', 'Company ABC', 'Description ABC')`
     );
     await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('XYZ', 'Company XYZ', 'Description XYZ')`
+        `INSERT INTO companies (code, name, description) VALUES ('xyz', 'Company XYZ', 'Description XYZ')`
     );
 
     // Insert some test data into invoices table
     await db.query(
-        `INSERT INTO invoices (comp_code, amt) VALUES ('ABC', 100.00)`
+        `INSERT INTO invoices (comp_code, amt) VALUES ('abc', 100.00)`
     );
     await db.query(
-        `INSERT INTO invoices (comp_code, amt) VALUES ('ABC', 200.00)`
+        `INSERT INTO invoices (comp_code, amt) VALUES ('abc', 200.00)`
     );
 });
 
@@ -81,12 +81,12 @@ describe("GET /invoices/:id", () => {
 describe("POST /invoices", () => {
     test("should create a new invoice", async () => {
         const response = await request(app).post("/invoices").send({
-            comp_code: "ABC",
+            comp_code: "abc",
             amt: 300.0,
         });
         expect(response.status).toBe(201);
         expect(response.body.invoice).toBeDefined();
-        expect(response.body.invoice.comp_code).toBe("ABC");
+        expect(response.body.invoice.comp_code).toBe("abc");
         expect(response.body.invoice.amt).toBe(300.0);
         expect(response.body.invoice.paid).toBe(false);
         let add_date = new Date(response.body.invoice.add_date);
@@ -97,7 +97,7 @@ describe("POST /invoices", () => {
     test("should handle validation errors", async () => {
         const response = await request(app)
             .post("/invoices")
-            .send({ comp_code: "XYZ" }); // Missing amt
+            .send({ comp_code: "xyz" }); // Missing amt
         expect(response.status).toBe(500);
         expect(response.body.error).toBeDefined();
     });
@@ -111,6 +111,17 @@ describe("PUT /invoices/:id", () => {
         expect(response.status).toBe(200);
         expect(response.body.invoice).toBeDefined();
         expect(response.body.invoice.amt).toBe(400.0);
+    });
+
+    test("should pay an invoice", async () => {
+        const response = await request(app).put("/invoices/1").send({
+            paid: true,
+        });
+        expect(response.status).toBe(200);
+        expect(response.body.invoice).toBeDefined();
+        expect(response.body.invoice.paid).toBe(true);
+        let paid_date = new Date(response.body.invoice.paid_date);
+        expect(paid_date.toDateString()).toBe(new Date().toDateString());
     });
 
     test("should handle invoice not found", async () => {
@@ -138,16 +149,16 @@ describe("DELETE /invoices/:id", () => {
 
 describe("GET /invoices/companies/:code", () => {
     test("should return invoices for a specific company", async () => {
-        const response = await request(app).get("/invoices/companies/ABC");
+        const response = await request(app).get("/invoices/companies/abc");
         expect(response.status).toBe(200);
         expect(response.body.company).toBeDefined();
-        expect(response.body.company.code).toBe("ABC");
+        expect(response.body.company.code).toBe("abc");
         expect(response.body.company.invoices).toHaveLength(2);
     });
 
     test("should handle company not found", async () => {
-        const response = await request(app).get("/invoices/companies/DEF");
+        const response = await request(app).get("/invoices/companies/def");
         expect(response.status).toBe(404);
-        expect(response.body.message).toBe("Company with code 'DEF' not found");
+        expect(response.body.message).toBe("Company with code 'def' not found");
     });
 });
