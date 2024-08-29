@@ -2,7 +2,13 @@
 const { Client } = require("pg");
 require("dotenv").config();
 
-let DB_URI = process.env.DB_URI;
+let DB_URI;
+
+if (process.env.NODE_ENV === "test") {
+    DB_URI = process.env.TEST_DB_URI;
+} else {
+    DB_URI = process.env.DB_URI;
+}
 
 if (DB_URI === undefined) {
     console.error("No DB_URI found; exiting");
