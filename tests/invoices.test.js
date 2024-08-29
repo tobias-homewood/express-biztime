@@ -1,47 +1,18 @@
 const request = require("supertest");
 const app = require("../app");
 const db = require("../db");
+const fs = require("fs");
+const path = require("path");
 
 process.env.NODE_ENV = "test";
 
 beforeEach(async () => {
-    // Drop table
-    await db.query(`DROP TABLE IF EXISTS invoices`);
-    await db.query(`DROP TABLE IF EXISTS companies`);
-
-    // Create companies table
-    await db.query(`CREATE TABLE companies (
-        code text PRIMARY KEY,
-        name text NOT NULL UNIQUE,
-        description text
-    )`);
-
-    // Create invoices table
-    await db.query(`CREATE TABLE invoices (
-        id serial PRIMARY KEY,
-        comp_code text NOT NULL REFERENCES companies ON DELETE CASCADE,
-        amt float NOT NULL,
-        paid boolean DEFAULT false NOT NULL,
-        add_date date DEFAULT CURRENT_DATE NOT NULL,
-        paid_date date,
-        CONSTRAINT invoices_amt_check CHECK ((amt > (0)::double precision))
-    )`);
-
-    // Insert some test data into companies table
-    await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('abc', 'Company ABC', 'Description ABC')`
+    // Read and execute the SQL script
+    const sqlScript = fs.readFileSync(
+        path.join(__dirname, "test_data.sql"),
+        "utf-8"
     );
-    await db.query(
-        `INSERT INTO companies (code, name, description) VALUES ('xyz', 'Company XYZ', 'Description XYZ')`
-    );
-
-    // Insert some test data into invoices table
-    await db.query(
-        `INSERT INTO invoices (comp_code, amt) VALUES ('abc', 100.00)`
-    );
-    await db.query(
-        `INSERT INTO invoices (comp_code, amt) VALUES ('abc', 200.00)`
-    );
+    await db.query(sqlScript);
 });
 
 afterAll(async () => {
