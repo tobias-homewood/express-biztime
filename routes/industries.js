@@ -91,4 +91,92 @@ industriesRouter.delete("/:code", async function (req, res, next) {
     }
 });
 
+industriesRouter.post("/:code/companies", async function (req, res, next) {
+    try {
+        const code = req.params.code;
+        const { comp_code } = req.body;
+
+        // check that industry exists
+        const industryResult = await db.query(
+            `SELECT * FROM industries WHERE code = $1`,
+            [code]
+        );
+        if (industryResult.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ message: `Industry with code '${code}' not found` });
+        }
+
+        // check that company exists
+        const companyResult = await db.query(
+            `SELECT * FROM companies WHERE code = $1`,
+            [comp_code]
+        );
+        if (companyResult.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ message: `Company with code '${comp_code}' not found` });
+        }
+
+        // add company to industry
+        await db.query(
+            `INSERT INTO companies_industries (ind_code, comp_code) VALUES ($1, $2)`,
+            [code, comp_code]
+        );
+
+        const industry = industryResult.rows[0];
+        industry.companies = await retrieveCompanies(industry, db);
+        return res.status(201).json({ industry: industry });
+    } catch (err) {
+        return next(err);
+    }
+});
+
+industriesRouter.delete("/:code/companies/:comp_code", async function (req, res, next) {
+    try {
+        const code = req.params.code;
+        const comp_code = req.params.comp_code;
+
+        // check that industry exists
+        const industryResult = await db.query(
+            `SELECT * FROM industries WHERE code = $1`,
+            [code]
+        );
+
+        if (industryResult.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ message: `Industry with code '${code}' not found` });
+        }
+
+        // check that company exists
+        const companyResult = await db.query(
+            `SELECT * FROM companies WHERE code = $1`,
+            [comp_code]
+        );
+
+        if (companyResult.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ message: `Company with code '${comp_code}' not found` });
+        }
+
+        // remove company from industry
+        const result = await db.query(
+            `DELETE FROM companies_industries WHERE ind_code = $1 AND comp_code = $2 RETURNING *`,
+            [code, comp_code]
+        );
+
+        if (result.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ message: `Company with code '${comp_code}' not found in industry with code '${code}'` });
+        }
+
+        return res.json({ status: "deleted" });
+    } catch( err ) {
+        return next(err);
+    }
+});
+
 module.exports = industriesRouter;
