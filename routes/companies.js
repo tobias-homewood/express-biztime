@@ -7,7 +7,11 @@ const retrieveIndustries = require("../helpers/retrieveIndustries");
 companiesRouter.get("/", async function (req, res, next) {
     try {
         const result = await db.query(`SELECT * FROM companies`);
-        return res.json({ companies: result.rows });
+        const companies = result.rows;
+        for (let company of companies) {
+            company.industries = await retrieveIndustries(company, db);
+        }
+        return res.json({ companies: companies });
     } catch (err) {
         return next(err);
     }
